@@ -1,7 +1,7 @@
 /**
  * Created by aivanov on 23.05.2016.
  */
-sbd_app.directive('leaflet', function () {
+angular.module('angular-leaflet-directive', []).directive('leaflet', function () {
 
     return {
         restrict: 'E',
