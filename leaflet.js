@@ -1,7 +1,14 @@
 /**
  * Created by aivanov on 23.05.2016.
  */
-angular.module('angular-leaflet-directive', []).directive('leaflet', function () {
+(function (ng, undefined){
+    'use strict';
+
+    ng.module('angular-leaflet-directive', []).run(['$templateCache', function ($templateCache) {
+    $templateCache.put('template/leaflet.html','<div style="width: 100%; height: 100%" ng-transclude></div>');
+}]);
+
+    ng.module('angular-leaflet-directive').directive('leaflet', function () {
 
     return {
         restrict: 'E',
@@ -15,7 +22,7 @@ angular.module('angular-leaflet-directive', []).directive('leaflet', function ()
             lon: '@',
             name: '@'
         },
-        templateUrl: 'static/app/template/leaflet.html',
+        template: 'template/leaflet.html',
         controller: ["$scope", function(scope) {
             // Позволяет использовать путь до нужного свойства
             scope.getDescendantProp = function(obj, desc) {
@@ -86,3 +93,5 @@ angular.module('angular-leaflet-directive', []).directive('leaflet', function ()
         }
     };
 });
+
+})(angular);
