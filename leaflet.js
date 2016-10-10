@@ -24,6 +24,7 @@
             baseScale: '@',
             name: '@',
             subname: '@',
+            selectCallback: '=selectOnMapCallback',
             layers: '='
         },
         templateUrl: 'template/leaflet.html',
@@ -82,8 +83,12 @@
                     });
                     scope.markers[i] = new L.marker([scope.getDescendantProp(scope.items[i], scope.lat), scope.getDescendantProp(scope.items[i], scope.lon)], {icon: icon});
                     scope.markers[i].bindPopup('<b>' + scope.getDescendantProp(scope.items[i], scope.name) + '</b></br><small class="text-muted">' + scope.getDescendantProp(scope.items[i], scope.subname) + '</small><hr><i class="fa fa-male"></i><i class="fa fa-train"></i>').openPopup();
-                    /*scope.markers[i].bindLabel(scope.getDescendantProp(scope.items[i], scope.name), {noHide: true, className: "car-label", offset: [0, 0] });*/
-                    scope.markers[i].addTo(scope.mymap);
+                    /*scope.markers[i].bindLabel(scope.getDescendantProp(scope.items[i, scope.name), {noHide: true, className: "car-label", offset: [0, 0] });*/
+                    scope.markers[i].addTo(scope.mymap).on('click', function(item) {
+                        return function() {
+                            scope.selectCallback(item)
+                        };
+                    }(scope.items[i]));
                 }
             }
 
