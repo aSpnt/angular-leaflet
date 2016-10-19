@@ -41,8 +41,8 @@
 
             scope.markers = [];
 
-            scope.internalControl = scope.control || {};
-            scope.internalControl.invalidate = function() {
+            scope.externalControl = scope.control || {};
+            scope.externalControl.invalidate = function() {
                 scope.mymap.invalidateSize();
             }
 
@@ -65,6 +65,13 @@
             $(element[0].firstChild).resize(function() {
                 scope.mymap.invalidateSize();
             })
+
+            /** Register navigate function on external control object */
+            scope.externalControl.navigateMap = function(lat, lon, zoom) {
+                if (lat != undefined && lon != undefined) {
+                    scope.mymap.setView([lat, lon], zoom ? zoom : 13)
+                }
+            }
 
             scope.recreateMarkers = function() {
                 for (var i = 0; i < scope.markers.length; i++) {
