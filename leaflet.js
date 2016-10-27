@@ -96,7 +96,7 @@
 
                     /* Определение иконки по главному свойству */
                     var iconValueRaw = scope.getDescendantProp(scope.items[i], scope.iconDiffPath);
-                    if (iconValueRaw && scope.iconDiffFunc) {
+                    if (iconValueRaw != null && scope.iconDiffFunc) {
                         var iconValue = scope.iconDiffFunc(iconValueRaw);
                     } else {
                         var iconValue = iconValueRaw;
@@ -104,7 +104,7 @@
 
                     /* Определение иконки по втричному свойству (статусу) */
                     var iconStatusRaw = scope.getDescendantProp(scope.items[i], scope.iconStatusPath);
-                    if (iconStatusRaw && scope.iconStatusFunc) {
+                    if (iconStatusRaw != null && scope.iconStatusFunc) {
                         var iconStatus = scope.iconStatusFunc(iconStatusRaw);
                     } else {
                         var iconStatus = iconStatusRaw;
