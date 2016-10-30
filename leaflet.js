@@ -33,6 +33,7 @@
             iconBaseFormat: '@?',
             /* Настройки размера иконок */
             templatePopup: '@',
+            popupPromise: "=?",
             iconSettings: '=?',
             baseLat: '@?',
             baseLon: '@?',
@@ -129,24 +130,38 @@
                         });
                         scope.markers[i] = new L.marker([scope.getDescendantProp(scope.items[i], scope.lat), scope.getDescendantProp(scope.items[i], scope.lon)], {icon: icon});
 
-                        var closure = scope.$new(true);
-                        closure.marker = scope.markers[i];
-                        closure.item = scope.items[i];
-                        (function(closure) {
-                            scope.templateRequest(scope.templatePopup).then(function(html){
-                                var compiled = scope.interpolate(html)(closure);
-                                closure.marker.bindPopup(compiled);
-                            });
-                        })(closure);
+                        /* Если функция динамической подгрузки не указана, всплывающее меню генерируется заранее */
+                        if (!scope.popupPromise) {
+                            var closure = scope.$new(true);
+                            closure.marker = scope.markers[i];
+                            closure.item = scope.items[i];
+                            (function (closure) {
+                                scope.templateRequest(scope.templatePopup).then(function (html) {
+                                    var compiled = scope.interpolate(html)(closure);
+                                    closure.marker.bindPopup(compiled);
+                                });
+                            })(closure);
+                        }
 
                         /*scope.markers[i].bindLabel(scope.getDescendantProp(scope.items[i, scope.name), {noHide: true, className: "car-label", offset: [0, 0] });*/
-                        scope.markers[i].addTo(scope.mymap).on('click', function (item) {
+                        scope.markers[i].addTo(scope.mymap).on('click', function (item, marker) {
                             return function () {
+                                /* Если функция динамической подгрузки указана, генерируется всплывающее меню */
+                                if (scope.popupPromise) {
+                                    scope.popupPromise(item.id).then(function(checkpoint) {
+                                        var closure = scope.$new(true);
+                                        closure.item = checkpoint;
+                                        scope.templateRequest(scope.templatePopup).then(function (html) {
+                                            var compiled = scope.interpolate(html)(closure);
+                                            marker.bindPopup(compiled).openPopup();
+                                        });
+                                    });
+                                }
                                 if (scope.selectCallback) {
                                     scope.selectCallback(item)
                                 }
                             };
-                        }(scope.items[i]));
+                        }(scope.items[i], scope.markers[i]));
                     }
                 }
             }
