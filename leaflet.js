@@ -32,7 +32,8 @@
             /* Базовый шаблон для определения адреса иконки (передаются ппараметры diff и статус) */
             iconBaseFormat: '@?',
             /* Настройки размера иконок */
-            templatePopup: '@',
+            templatePopup: '@?',
+            iconShadow: '@?',
             popupPromise: "=?",
             iconSettings: '=?',
             baseLat: '@?',
@@ -121,7 +122,7 @@
                         var iconURL = scope.format(scope.iconBaseFormat, iconValue, iconStatus);
                         var icon = L.icon({
                             iconUrl: iconURL,
-
+                            shadowUrl: scope.iconShadow,
                             iconSize: (scope.iconSettings) ? (scope.iconSettings.iconSize) : undefined,
                             shadowSize: (scope.iconSettings) ? (scope.iconSettings.shadowSize) : undefined,
                             iconAnchor: (scope.iconSettings) ? (scope.iconSettings.iconAnchor) : undefined,
