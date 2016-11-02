@@ -96,7 +96,9 @@
 
             scope.recreateMarkers = function() {
                 for (var i = 0; i < scope.markers.length; i++) {
-                    scope.mymap.removeLayer(scope.markers[i]);
+                    if (scope.markers[i]) {
+                        scope.mymap.removeLayer(scope.markers[i]);
+                    }
                 }
                 scope.markers = [];
                 for (var i = 0; i < scope.items.length; i++) {
