@@ -94,6 +94,12 @@
                 }
             }
 
+            scope.externalControl.flyToBounds = function(southWestRaw, northEastRaw) {
+                var southWest = L.latLng(southWestRaw.lat, southWestRaw.lng);
+                var northEast = L.latLng(northEastRaw.lat, northEastRaw.lng);
+                scope.mymap.fitBounds(new L.LatLngBounds([southWest, northEast]))
+            }
+
             scope.recreateMarkers = function() {
                 for (var i = 0; i < scope.markers.length; i++) {
                     if (scope.markers[i]) {
