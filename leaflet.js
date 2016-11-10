@@ -28,6 +28,7 @@
             scope.interpolate = interpolate;
             scope.templateRequest = templateRequest;
             scope.overlay = [];
+            scope.control = L.control.layers([], []);
 
             // Позволяет использовать путь до нужного свойства
             scope.getDescendantProp = function(obj, desc) {
@@ -38,6 +39,8 @@
         }],
         link: function (scope, element, attr) {
             scope.mymap = L.map(element[0]).setView([scope.baseLat ? scope.baseLat : 0, scope.baseLon ? scope.baseLon : 0], scope.baseScale ? scope.baseScale : 13);
+
+            scope.control.addTo(scope.mymap)
 
             scope.markers = [];
 
@@ -163,15 +166,14 @@
                         if (scope.overlay[i].collectionDestroyer) {
                             scope.overlay[i].collectionDestroyer();
                         }
-                        if (scope.overlay[i].itemDestroyer) {
-                            scope.overlay[i].itemDestroyer();
-                        }
+                        scope.control.removeLayer(scope.overlay[i]);
                     }
                 }
                 scope.overlay = [];
                 if (scope.dynamicLayers) {
                     for (var i = 0; i < scope.dynamicLayers.length; i++) {
                         scope.overlay[i] = L.layerGroup();
+                        scope.control.addOverlay(scope.overlay[i], scope.dynamicLayers[i].name);
                         if (scope.dynamicLayers[i]) {
                             (function(index) {
                                 /* Перестроение при изменении данных */
