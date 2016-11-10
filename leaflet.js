@@ -16,32 +16,10 @@
         replace: true,
         scope: {
             control: '=?',
-            items: '=',
-            /* Путь до свойства с широтой */
-            lat: '@?',
-            /* Путь до свойства с долготой */
-            lon: '@?',
-            /* Путь до свойства, по которому можно дифференцировать иконку */
-            iconDiffPath: '@?',
-            /* Функция, получающая код (название) части иконки по объекту diff */
-            iconDiffFunc: '=?',
-            /* Путь до свойства, по которому можно статус объекта (для определения иконки) */
-            iconStatusPath: '@?',
-            /* Функция, получающая код (название) части иконки по объекту status */
-            iconStatusFunc: '=?',
-            /* Базовый шаблон для определения адреса иконки (передаются ппараметры diff и статус) */
-            iconBaseFormat: '@?',
-            /* Настройки размера иконок */
-            templatePopup: '@?',
-            iconShadow: '@?',
-            popupPromise: "=?",
-            iconSettings: '=?',
+            dynamicLayers: '=?',
             baseLat: '@?',
             baseLon: '@?',
             baseScale: '@?',
-            name: '@',
-            subname: '@',
-            selectCallback: '=?selectOnMapCallback',
             layers: '='
         },
         templateUrl: 'template/leaflet.html',
@@ -49,6 +27,7 @@
 
             scope.interpolate = interpolate;
             scope.templateRequest = templateRequest;
+            scope.overlay = [];
 
             // Позволяет использовать путь до нужного свойства
             scope.getDescendantProp = function(obj, desc) {
@@ -100,52 +79,54 @@
                 scope.mymap.fitBounds(new L.LatLngBounds([southWest, northEast]))
             }
 
-            scope.recreateMarkers = function() {
-                for (var i = 0; i < scope.markers.length; i++) {
-                    if (scope.markers[i]) {
-                        scope.mymap.removeLayer(scope.markers[i]);
-                    }
-                }
-                scope.markers = [];
-                for (var i = 0; i < scope.items.length; i++) {
+            /* items - объекты для которых строятся маркеры, layer:  layerGroup */
+            scope.recreateMarkers = function(layerData, layer) {
+                layer.clearLayers();
+
+                for (var i = 0; i < layerData.items.length; i++) {
 
                     /* Определение иконки по главному свойству */
-                    var iconValueRaw = scope.getDescendantProp(scope.items[i], scope.iconDiffPath);
-                    if (iconValueRaw != null && scope.iconDiffFunc) {
-                        var iconValue = scope.iconDiffFunc(iconValueRaw);
+                    var iconValueRaw = scope.getDescendantProp(layerData.items[i], layerData.iconDiffPath);
+                    if (iconValueRaw != null && layerData.iconDiffFunc) {
+                        var iconValue = layerData.iconDiffFunc(iconValueRaw);
                     } else {
                         var iconValue = iconValueRaw;
                     }
 
                     /* Определение иконки по втричному свойству (статусу) */
-                    var iconStatusRaw = scope.getDescendantProp(scope.items[i], scope.iconStatusPath);
-                    if (iconStatusRaw != null && scope.iconStatusFunc) {
-                        var iconStatus = scope.iconStatusFunc(iconStatusRaw);
+                    var iconStatusRaw = scope.getDescendantProp(layerData.items[i], layerData.iconStatusPath);
+                    if (iconStatusRaw != null && layerData.iconStatusFunc) {
+                        var iconStatus = layerData.iconStatusFunc(iconStatusRaw);
                     } else {
                         var iconStatus = iconStatusRaw;
                     }
 
                     if (iconValue) {
                         /* Формирвоание конечного URL иконки по главному и вторичному признаку */
-                        var iconURL = scope.format(scope.iconBaseFormat, iconValue, iconStatus);
+                        var iconURL = scope.format(layerData.iconBaseFormat, iconValue, iconStatus);
                         var icon = L.icon({
                             iconUrl: iconURL,
-                            shadowUrl: scope.iconShadow,
-                            iconSize: (scope.iconSettings) ? (scope.iconSettings.iconSize) : undefined,
-                            shadowSize: (scope.iconSettings) ? (scope.iconSettings.shadowSize) : undefined,
-                            iconAnchor: (scope.iconSettings) ? (scope.iconSettings.iconAnchor) : undefined,
-                            shadowAnchor: (scope.iconSettings) ? (scope.iconSettings.shadowAnchor) : undefined,
-                            popupAnchor: (scope.iconSettings) ? (scope.iconSettings.popupAnchor) : undefined
+                            shadowUrl: layerData.iconShadow,
+                            iconSize: (layerData.iconSettings) ? (layerData.iconSettings.iconSize) : undefined,
+                            shadowSize: (layerData.iconSettings) ? (layerData.iconSettings.shadowSize) : undefined,
+                            iconAnchor: (layerData.iconSettings) ? (layerData.iconSettings.iconAnchor) : undefined,
+                            shadowAnchor: (layerData.iconSettings) ? (layerData.iconSettings.shadowAnchor) : undefined,
+                            popupAnchor: (layerData.iconSettings) ? (layerData.iconSettings.popupAnchor) : undefined
                         });
-                        scope.markers[i] = new L.marker([scope.getDescendantProp(scope.items[i], scope.lat), scope.getDescendantProp(scope.items[i], scope.lon)], {icon: icon});
+                        var newMarker = new L.marker([scope.getDescendantProp(layerData.items[i], layerData.lat), scope.getDescendantProp(layerData.items[i], layerData.lon)], {icon: icon})
+
+                        /* Установка значения z-index */
+                        newMarker.setZIndexOffset((layerData.zIndexOffset ? layerData.zIndexOffset : 0) + i);
+
+                        layer.addLayer(newMarker);
 
                         /* Если функция динамической подгрузки не указана, всплывающее меню генерируется заранее */
-                        if (!scope.popupPromise) {
+                        if (!layerData.popupPromise) {
                             var closure = scope.$new(true);
-                            closure.marker = scope.markers[i];
-                            closure.item = scope.items[i];
+                            closure.marker = newMarker;
+                            closure.item = layerData.items[i];
                             (function (closure) {
-                                scope.templateRequest(scope.templatePopup).then(function (html) {
+                                scope.templateRequest(layerData.templatePopup).then(function (html) {
                                     var compiled = scope.interpolate(html)(closure);
                                     closure.marker.bindPopup(compiled);
                                 });
@@ -153,31 +134,61 @@
                         }
 
                         /*scope.markers[i].bindLabel(scope.getDescendantProp(scope.items[i, scope.name), {noHide: true, className: "car-label", offset: [0, 0] });*/
-                        scope.markers[i].addTo(scope.mymap).on('click', function (item, marker) {
+                        newMarker.on('click', function (item, marker) {
                             return function () {
                                 /* Если функция динамической подгрузки указана, генерируется всплывающее меню */
-                                if (scope.popupPromise) {
-                                    scope.popupPromise(item.id).then(function(checkpoint) {
+                                if (layerData.popupPromise) {
+                                    layerData.popupPromise(item.id).then(function(checkpoint) {
                                         var closure = scope.$new(true);
                                         closure.item = checkpoint;
-                                        scope.templateRequest(scope.templatePopup).then(function (html) {
+                                        scope.templateRequest(layerData.templatePopup).then(function (html) {
                                             var compiled = scope.interpolate(html)(closure);
                                             marker.bindPopup(compiled).openPopup();
                                         });
                                     });
                                 }
-                                if (scope.selectCallback) {
-                                    scope.selectCallback(item)
+                                if (layerData.selectCallback) {
+                                    layerData.selectCallback(item)
                                 }
                             };
-                        }(scope.items[i], scope.markers[i]));
+                        }(layerData.items[i], newMarker));
                     }
                 }
             }
 
-            /* Настройка изменений маркеров */
-            scope.$watchCollection('items', function(newItems, oldItems) {
-                scope.recreateMarkers();
+            /* Настройка реакции на изменение списоков данных */
+            scope.recreateAll = function() {
+                if (scope.overlay) {
+                    for (var i = 0; i < scope.overlay.length; i++) {
+                        if (scope.overlay[i].collectionDestroyer) {
+                            scope.overlay[i].collectionDestroyer();
+                        }
+                        if (scope.overlay[i].itemDestroyer) {
+                            scope.overlay[i].itemDestroyer();
+                        }
+                    }
+                }
+                scope.overlay = [];
+                if (scope.dynamicLayers) {
+                    for (var i = 0; i < scope.dynamicLayers.length; i++) {
+                        scope.overlay[i] = L.layerGroup();
+                        if (scope.dynamicLayers[i]) {
+                            (function(index) {
+                                /* Перестроение при изменении данных */
+                                scope.overlay[index].collectionDestroyer = scope.$watchCollection('dynamicLayers[' + index + '].items', function(newItems, oldItems) {
+                                    scope.recreateMarkers(scope.dynamicLayers[index], scope.overlay[index]);
+                                });
+                            })(i);
+                        }
+                        scope.overlay[i].addTo(scope.mymap)
+                    }
+                }
+            }
+            scope.recreateAll();
+
+            /* Пересоздание всех слоев при изменеении коллекции */
+            scope.$watchCollection(scope.dynamicLayers, function(newItems, oldItems) {
+                scope.recreateAll();
             });
 
             /* Настройка триггеров перерисовки */
