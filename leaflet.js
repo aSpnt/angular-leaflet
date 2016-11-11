@@ -169,6 +169,7 @@
                             scope.overlay[i].collectionDestroyer();
                         }
                         scope.control.removeLayer(scope.overlay[i]);
+                        scope.mymap.removeLayer(scope.overlay[i])
                     }
                 }
                 scope.overlay = [];
