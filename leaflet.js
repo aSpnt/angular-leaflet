@@ -118,7 +118,17 @@
                             shadowAnchor: (layerData.iconSettings) ? (layerData.iconSettings.shadowAnchor) : undefined,
                             popupAnchor: (layerData.iconSettings) ? (layerData.iconSettings.popupAnchor) : undefined
                         });
-                        var newMarker = new L.marker([scope.getDescendantProp(layerData.items[i], layerData.lat), scope.getDescendantProp(layerData.items[i], layerData.lon)], {icon: icon})
+                        var latCurrent = scope.getDescendantProp(layerData.items[i], layerData.lat);
+                        var lngCurrent = scope.getDescendantProp(layerData.items[i], layerData.lon);
+                        if (latCurrent && lngCurrent) {
+                            /* Если координаты определены */
+                            var newMarker = new L.marker(
+                                [latCurrent, lngCurrent],
+                                {icon: icon})
+                        } else {
+                            /* Если координаты не определены маркер не будет создан */
+                            continue;
+                        }
 
                         /* Установка значения z-index */
                         newMarker.setZIndexOffset((layerData.zIndexOffset ? layerData.zIndexOffset : 0) + i);
