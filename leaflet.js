@@ -21,6 +21,7 @@
             baseLat: '@?',
             baseLon: '@?',
             baseScale: '@?',
+            onMapClick: '=?',
             layers: '='
         },
         templateUrl: 'template/leaflet.html',
@@ -51,6 +52,23 @@
                 scope.mymap.invalidateSize();
             }
 
+            /* Возможность внешнего добавления GeoJSON */
+            scope.externalControl.addGeoJson = function(geoJson, style) {
+                var geoJsonMap = L.geoJSON(geoJson, style);
+                geoJsonMap.addTo(scope.mymap);
+                return geoJsonMap;
+            }
+
+            /* Универсальное удаление объекта */
+            scope.externalControl.removeLayer = function(geoJsonLayer) {
+                scope.mymap.removeLayer(geoJsonLayer);
+            }
+
+            /* Привязка клика на карту с callback */
+            if (scope.onMapClick) {
+                scope.mymap.on('click', scope.onMapClick);
+            }
+
             if (scope.layers && scope.layers.wms) {
                 angular.forEach(scope.layers.wms, function(value, key) {
                     L.tileLayer.wms(value.url, {
@@ -62,11 +80,6 @@
                 });
             }
 
-            /*
-            L.tileLayer(scope.server, {
-                maxZoom: 18
-            }).addTo(scope.mymap);
-            */
             $(element[0].firstChild).resize(function() {
                 scope.mymap.invalidateSize();
             })
