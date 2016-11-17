@@ -30,7 +30,7 @@
             scope.interpolate = interpolate;
             scope.templateRequest = templateRequest;
             scope.overlay = [];
-            scope.control = L.control.layers([], []);
+            scope.mapControl = L.control.layers([], []);
 
             // Позволяет использовать путь до нужного свойства
             scope.getDescendantProp = function(obj, desc) {
@@ -43,7 +43,7 @@
             scope.mymap = L.map(element[0], scope.options)
                 .setView([scope.baseLat ? scope.baseLat : 0, scope.baseLon ? scope.baseLon : 0], scope.baseScale ? scope.baseScale : 13);
 
-            scope.control.addTo(scope.mymap)
+            scope.mapControl.addTo(scope.mymap)
 
             scope.markers = [];
 
@@ -53,9 +53,10 @@
             }
 
             /* Возможность внешнего добавления GeoJSON */
-            scope.externalControl.addGeoJson = function(geoJson, style) {
+            scope.externalControl.addGeoJson = function(geoJson, text, style) {
                 var geoJsonMap = L.geoJSON(geoJson, style);
                 geoJsonMap.addTo(scope.mymap);
+                geoJsonMap.bindTooltip(text, {direction: 'top'}).openTooltip();
                 return geoJsonMap;
             }
 
@@ -191,7 +192,7 @@
                         if (scope.overlay[i].collectionDestroyer) {
                             scope.overlay[i].collectionDestroyer();
                         }
-                        scope.control.removeLayer(scope.overlay[i]);
+                        scope.mapControl.removeLayer(scope.overlay[i]);
                         scope.mymap.removeLayer(scope.overlay[i])
                     }
                 }
@@ -199,7 +200,7 @@
                 if (scope.dynamicLayers) {
                     for (var i = 0; i < scope.dynamicLayers.length; i++) {
                         scope.overlay[i] = L.layerGroup();
-                        scope.control.addOverlay(scope.overlay[i], scope.dynamicLayers[i].name);
+                        scope.mapControl.addOverlay(scope.overlay[i], scope.dynamicLayers[i].name);
                         if (scope.dynamicLayers[i]) {
                             (function(index) {
                                 /* Перестроение при изменении данных */
@@ -208,7 +209,9 @@
                                 });
                             })(i);
                         }
-                        scope.overlay[i].addTo(scope.mymap)
+                        if (scope.dynamicLayers[i].enable) {
+                            scope.overlay[i].addTo(scope.mymap)
+                        }
                     }
                 }
             }
