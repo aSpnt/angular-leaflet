@@ -47,6 +47,9 @@
 
             scope.markers = [];
 
+            /* Инициализация массива базовых слоев leaflet */
+            scope.baseLayers = [];
+
             scope.externalControl = scope.control || {};
             scope.externalControl.invalidate = function() {
                 scope.mymap.invalidateSize();
@@ -68,17 +71,6 @@
             /* Привязка клика на карту с callback */
             if (scope.onMapClick) {
                 scope.mymap.on('click', scope.onMapClick);
-            }
-
-            if (scope.layers && scope.layers.wms) {
-                angular.forEach(scope.layers.wms, function(value, key) {
-                    L.tileLayer.wms(value.url, {
-                        layers: value.layers,
-                        crc: value.crc,
-                        transparent: value.transparent,
-                        format: value.format
-                    }).addTo(scope.mymap);
-                });
             }
 
             $(element[0].firstChild).resize(function() {
@@ -185,6 +177,26 @@
                 }
             }
 
+            scope.recreateBaseAll = function() {
+                if (scope.baseLayers) {
+                    scope.baseLayers.forEach(function(item) {
+                        scope.mymap.removeLayer(item);
+                    });
+                }
+                if (scope.layers && scope.layers.wms) {
+                    angular.forEach(scope.layers.wms, function(value, key) {
+                        var newLayer = L.tileLayer.wms(value.url, {
+                            layers: value.layers,
+                            crc: value.crc,
+                            transparent: value.transparent,
+                            format: value.format
+                        });
+                        scope.baseLayers.push(newLayer);
+                        newLayer.addTo(scope.mymap)
+                    });
+                }
+            }
+
             /* Настройка реакции на изменение списоков данных */
             scope.recreateAll = function() {
                 if (scope.overlay) {
@@ -217,10 +229,17 @@
             }
             scope.recreateAll();
 
-            /* Пересоздание всех слоев при изменеении коллекции */
-            scope.$watchCollection(scope.dynamicLayers, function(newItems, oldItems) {
+            scope.recreateBaseAll();
+
+            /* Пересоздание динамических слоев при изменеении коллекции */
+            scope.$watchCollection('dynamicLayers', function(newItems, oldItems) {
                 scope.recreateAll();
             });
+
+            /* Пересоздание слоев подложки при изменеении коллекции */
+            scope.$watch('layers', function(newItems, oldItems) {
+                scope.recreateBaseAll();
+            }, true);
 
             /* Настройка триггеров перерисовки */
             scope.$watch(
