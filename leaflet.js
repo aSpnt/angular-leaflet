@@ -55,6 +55,10 @@
                 scope.mymap.invalidateSize();
             }
 
+            scope.externalControl.getBounds = function() {
+                return scope.mymap.getBounds();
+            }
+
             /* Возможность внешнего добавления GeoJSON */
             scope.externalControl.addGeoJson = function(geoJson, text, style, tooltipCls) {
                 var geoJsonMap = L.geoJSON(geoJson, style);
