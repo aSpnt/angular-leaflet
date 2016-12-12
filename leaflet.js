@@ -60,8 +60,10 @@
             }
 
             /* Возможность внешнего добавления GeoJSON */
-            scope.externalControl.addGeoJson = function(geoJson, text, style, tooltipCls) {
-                var geoJsonMap = L.geoJSON(geoJson, style);
+            scope.externalControl.addGeoJson = function(geoJson, text, style, tooltipCls, onEachFeature) {
+                var geoJsonMap = L.geoJSON(geoJson, {
+                    style: style,
+                    onEachFeature: onEachFeature});
                 geoJsonMap.addTo(scope.mymap);
                 geoJsonMap.bindTooltip(text, {direction: 'top', className: tooltipCls}).openTooltip();
                 return geoJsonMap;
