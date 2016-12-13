@@ -102,20 +102,27 @@
 
                 for (var i = 0; i < layerData.items.length; i++) {
 
-                    /* Определение иконки по главному свойству */
-                    var iconValueRaw = scope.getDescendantProp(layerData.items[i], layerData.iconDiffPath);
-                    if (iconValueRaw != null && layerData.iconDiffFunc) {
-                        var iconValue = layerData.iconDiffFunc(iconValueRaw);
-                    } else {
-                        var iconValue = iconValueRaw;
-                    }
 
-                    /* Определение иконки по втричному свойству (статусу) */
-                    var iconStatusRaw = scope.getDescendantProp(layerData.items[i], layerData.iconStatusPath);
-                    if (iconStatusRaw != null && layerData.iconStatusFunc) {
-                        var iconStatus = layerData.iconStatusFunc(iconStatusRaw);
+
+                    if (layerData.iconFunc) {
+                        /* Есди задана функция определения иконки по объекту, использется она */
+                        var iconValue = layerData.iconFunc(layerData.items[i]);
                     } else {
-                        var iconStatus = iconStatusRaw;
+                        /* Определение иконки по главному свойству */
+                        var iconValueRaw = scope.getDescendantProp(layerData.items[i], layerData.iconDiffPath);
+                        if (iconValueRaw != null && layerData.iconDiffFunc) {
+                            var iconValue = layerData.iconDiffFunc(iconValueRaw);
+                        } else {
+                            var iconValue = iconValueRaw;
+                        }
+
+                        /* Определение иконки по втричному свойству (статусу) */
+                        var iconStatusRaw = scope.getDescendantProp(layerData.items[i], layerData.iconStatusPath);
+                        if (iconStatusRaw != null && layerData.iconStatusFunc) {
+                            var iconStatus = layerData.iconStatusFunc(iconStatusRaw);
+                        } else {
+                            var iconStatus = iconStatusRaw;
+                        }
                     }
 
                     if (iconValue) {
