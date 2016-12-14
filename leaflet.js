@@ -22,7 +22,9 @@
             baseLon: '@?',
             baseScale: '@?',
             onMapClick: '=?',
-            layers: '='
+            layers: '=',
+            needScale: '@?',
+            scaleOptions: '=?'
         },
         templateUrl: 'template/leaflet.html',
         controller: ["$scope", "$interpolate", "$templateRequest", function(scope, interpolate, templateRequest) {
@@ -43,7 +45,11 @@
             scope.mymap = L.map(element[0], scope.options)
                 .setView([scope.baseLat ? scope.baseLat : 0, scope.baseLon ? scope.baseLon : 0], scope.baseScale ? scope.baseScale : 13);
 
-            scope.mapControl.addTo(scope.mymap)
+            scope.mapControl.addTo(scope.mymap);
+
+            if (scope.needScale) {
+                scope.mapScale = L.control.scale(scope.scaleOptions).addTo(scope.mymap);
+            }
 
             scope.markers = [];
 
